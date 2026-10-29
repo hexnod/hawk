@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Hawk",
+  "version": "1.0.18",
+  "identifier": "io.github.hexnod.hawk",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Untitled - Hawk",
+        "width": 900,
+        "height": 650,
+        "minWidth": 320,
+        "minHeight": 200,
+        "resizable": true,
+        "maximizable": true,
+        "center": true,
+        "visible": false,
+        "windowClassname": "HawkWindow"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "publisher": "Mark West",
+    "targets": ["nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "resources": {
+      "../LICENSE": "LICENSE.txt",
+      "../NOTICE": "NOTICE.txt",
+      "../THIRD-PARTY-NOTICES.txt": "THIRD-PARTY-NOTICES.txt"
+    },
+    "windows": {
+      "nsis": {
+        "installerHooks": "./windows/hooks.nsh"
+      }
+    }
+  }
+}

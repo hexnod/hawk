@@ -1,0 +1,42 @@
+[package]
+name = "hawk"
+version = "1.0.18"
+description = "Hawk - a simple notepad-style text editor"
+authors = ["Mark West"]
+license = "Apache-2.0"
+repository = "https://github.com/hexnod/hawk"
+publish = false
+edition = "2021"
+default-run = "hawk"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# For the native window handle (Windows-only code in main.rs).
+raw-window-handle = "0.6"
+
+# Win32 calls in main.rs. Pinned: the API shifts between windows-rs releases.
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.58", features = [
+    "Win32_Foundation",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_UI_Shell",
+    "Win32_System_LibraryLoader", # GetModuleHandleW
+    "Win32_System_Console",       # AttachConsole/GetStdHandle
+] }
+
+[[bin]]
+name = "hawk"
+path = "src/main.rs"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<!-- Copyright 2026 Mark West
+     SPDX-License-Identifier: Apache-2.0 -->
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<title>Untitled - Hawk</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="content">
+    <textarea id="editor" spellcheck="true" autofocus></textarea>
+    <iframe id="preview-frame" class="hidden" title="Document preview" sandbox="allow-scripts"></iframe>
+  </div>
+
+  <div id="statusbar">
+    <button id="preview-toggle" type="button" class="toggle-switch" role="switch" aria-checked="false" disabled title="Preview">
+      <span class="toggle-track"><span class="toggle-thumb"></span></span>
+      <span class="toggle-label">Preview</span>
+    </button>
+
+    <span class="status-sep" aria-hidden="true"></span>
+
+    <span id="status-doctype" class="status-doctype"></span>
+
+    <span class="status-sep" aria-hidden="true"></span>
+
+    <span id="status-message" class="status-message">
+      <span id="status-message-text" class="status-message-text"></span>
+      <a href="#" id="status-more-link" class="status-more hidden">more</a>
+    </span>
+
+    <span class="status-sep" aria-hidden="true"></span>
+
+    <span id="status-savestate" class="status-savestate">Saved</span>
+
+    <span class="status-sep" aria-hidden="true"></span>
+
+    <span id="status-zoom" class="status-zoom">100%</span>
+
+    <span id="status-resize-grip" class="status-resize-grip" title="Drag to resize" aria-hidden="true"></span>
+  </div>
+
+  <div id="modal-overlay" class="hidden">
+    <div id="modal-box" role="dialog" aria-modal="true">
+      <div id="modal-title">Hawk</div>
+      <div id="modal-message"></div>
+      <div id="modal-buttons"></div>
+    </div>
+  </div>
+
+  <script src="vendor/marked.umd.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

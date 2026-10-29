@@ -1,0 +1,19 @@
+Hawk
+Copyright 2026 Mark West
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Hawk includes third-party software, including:
+
+marked (https://github.com/markedjs/marked), bundled as
+ui/vendor/marked.umd.js.
+  Copyright (c) 2018+, MarkedJS (https://github.com/markedjs/)
+  Copyright (c) 2011-2018, Christopher Jeffrey (https://github.com/chjj/)
+  Licensed under the MIT License. Derived in part from Markdown.pl,
+  Copyright (c) 2004, John Gruber, under the BSD license.
+
+and Rust crates compiled into hawk.exe, such as Tauri, wry, windows-rs
+and serde, under MIT, Apache-2.0 and other permissive licenses.
+
+The copyright notices and full license texts for all third-party software
+are in THIRD-PARTY-NOTICES.txt.

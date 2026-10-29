@@ -1,0 +1,13 @@
+{
+  "identifier": "default",
+  "description": "Capabilities for the Hawk main window",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-set-title",
+    "core:window:allow-close",
+    "core:window:allow-destroy",
+    "core:event:default",
+    "dialog:default"
+  ]
+}

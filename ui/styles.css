@@ -1,0 +1,387 @@
+/* Copyright 2026 Mark West
+   SPDX-License-Identifier: Apache-2.0 */
+
+:root {
+  /* Editor/preview colors (the title bar and menu keep the OS look). */
+  --editor-bg: #ffffff;
+  --editor-fg: #1f1f1f;
+  --editor-caret: #1f1f1f;
+  --editor-selection-bg: #add6ff;
+  --editor-selection-fg: #1f1f1f;
+
+  /* Status bar: a shade distinct from the editor in both themes. */
+  --statusbar-bg: #f0f0f0;
+  --statusbar-fg: #3c3c3c;
+  --statusbar-fg-muted: #6b6b6b;
+  --statusbar-sep: #d0d0d0;
+  --statusbar-link: #0645ad;
+  --statusbar-error: #b3261e;
+  --statusbar-track: #b9b9b9;
+  --statusbar-track-on: #0078d4;
+  --statusbar-thumb: #ffffff;
+}
+
+/* "Default" theme follows the OS light/dark setting. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --editor-bg: #1e1e1e;
+    --editor-fg: #d4d4d4;
+    --editor-caret: #d4d4d4;
+    --editor-selection-bg: #264f78;
+    --editor-selection-fg: #ffffff;
+
+    --statusbar-bg: #2d2d2d;
+    --statusbar-fg: #cfcfcf;
+    --statusbar-fg-muted: #969696;
+    --statusbar-sep: #4a4a4a;
+    --statusbar-link: #6cb6ff;
+    --statusbar-error: #ff6b6b;
+    --statusbar-track: #5a5a5a;
+    --statusbar-track-on: #4da3ff;
+    --statusbar-thumb: #e8e8e8;
+  }
+}
+
+/* Forced Light theme. */
+body.theme-light {
+  --editor-bg: #ffffff;
+  --editor-fg: #1f1f1f;
+  --editor-caret: #1f1f1f;
+  --editor-selection-bg: #add6ff;
+  --editor-selection-fg: #1f1f1f;
+
+  --statusbar-bg: #f0f0f0;
+  --statusbar-fg: #3c3c3c;
+  --statusbar-fg-muted: #6b6b6b;
+  --statusbar-sep: #d0d0d0;
+  --statusbar-link: #0645ad;
+  --statusbar-error: #b3261e;
+  --statusbar-track: #b9b9b9;
+  --statusbar-track-on: #0078d4;
+  --statusbar-thumb: #ffffff;
+}
+
+/* Forced Dark theme. */
+body.theme-dark {
+  --editor-bg: #1e1e1e;
+  --editor-fg: #d4d4d4;
+  --editor-caret: #d4d4d4;
+  --editor-selection-bg: #264f78;
+  --editor-selection-fg: #ffffff;
+
+  --statusbar-bg: #2d2d2d;
+  --statusbar-fg: #cfcfcf;
+  --statusbar-fg-muted: #969696;
+  --statusbar-sep: #4a4a4a;
+  --statusbar-link: #6cb6ff;
+  --statusbar-error: #ff6b6b;
+  --statusbar-track: #5a5a5a;
+  --statusbar-track-on: #4da3ff;
+  --statusbar-thumb: #e8e8e8;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--editor-bg);
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+#content {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+#editor,
+#preview-frame {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  margin: 0;
+}
+
+#editor {
+  resize: none;
+  padding: 4px 6px;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  tab-size: 4;
+  -moz-tab-size: 4;
+  background: var(--editor-bg);
+  color: var(--editor-fg);
+  caret-color: var(--editor-caret);
+}
+
+#preview-frame {
+  background: var(--editor-bg);
+}
+
+#editor::selection {
+  background: var(--editor-selection-bg);
+  color: var(--editor-selection-fg);
+}
+
+/* Word wrap: break at spaces; split a word only if it's wider than the
+   editor. */
+#editor.wrap-on {
+  white-space: pre-wrap;
+  word-break: normal;
+  overflow-wrap: break-word;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* No word wrap: horizontal scrollbar. */
+#editor.wrap-off {
+  white-space: pre;
+  word-break: normal;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ---------------- Status bar ---------------- */
+
+#statusbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  height: 24px; /* keep in sync with STATUS_BAR_CSS_HEIGHT_PX in main.rs */
+  padding: 0 8px;
+  gap: 8px;
+  background: var(--statusbar-bg);
+  color: var(--statusbar-fg);
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+  font-size: 12px;
+  user-select: none;
+  overflow: hidden;
+}
+
+.status-sep {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 14px;
+  background: var(--statusbar-sep);
+}
+
+/* Preview toggle switch */
+.toggle-switch {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.toggle-switch:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.toggle-track {
+  position: relative;
+  display: inline-block;
+  width: 28px;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--statusbar-track);
+  transition: background 0.12s ease;
+  flex: 0 0 auto;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--statusbar-thumb);
+  transition: left 0.12s ease;
+}
+
+.toggle-switch[aria-checked="true"] .toggle-track {
+  background: var(--statusbar-track-on);
+}
+
+.toggle-switch[aria-checked="true"] .toggle-thumb {
+  left: 15px;
+}
+
+.toggle-switch:focus-visible {
+  outline: 1px dotted var(--statusbar-fg);
+  outline-offset: 2px;
+}
+
+.toggle-label {
+  flex: 0 0 auto;
+}
+
+/* Document type (fixed width, blank when not previewable) */
+.status-doctype {
+  flex: 0 0 auto;
+  width: 12ch;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  color: var(--statusbar-fg-muted);
+}
+
+/* Status/error message area: takes the remaining width. */
+.status-message {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-message-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-message-text.is-error {
+  color: var(--statusbar-error);
+}
+
+.status-message-text .status-icon-error {
+  margin-right: 4px;
+}
+
+.status-more {
+  flex: 0 0 auto;
+  color: var(--statusbar-link);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.status-more:hover {
+  text-decoration: underline;
+}
+
+/* Fixed-width items, kept at the right edge by the message area's flex. */
+.status-savestate {
+  flex: 0 0 auto;
+  width: 8ch;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.status-zoom {
+  flex: 0 0 auto;
+  width: 6ch;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Size grip; drawn as a mask so it takes --statusbar-fg-muted. */
+.status-resize-grip {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  background-color: var(--statusbar-fg-muted);
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><circle cx='10' cy='10' r='1.1'/><circle cx='6' cy='10' r='1.1'/><circle cx='2' cy='10' r='1.1'/><circle cx='10' cy='6' r='1.1'/><circle cx='6' cy='6' r='1.1'/><circle cx='10' cy='2' r='1.1'/></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><circle cx='10' cy='10' r='1.1'/><circle cx='6' cy='10' r='1.1'/><circle cx='2' cy='10' r='1.1'/><circle cx='10' cy='6' r='1.1'/><circle cx='6' cy='6' r='1.1'/><circle cx='10' cy='2' r='1.1'/></svg>");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+/* ---------------- Modal dialogs ---------------- */
+
+#modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+  z-index: 1000;
+}
+
+#modal-box {
+  background: #f3f3f3;
+  border: 1px solid #999;
+  border-radius: 4px;
+  min-width: 320px;
+  max-width: 480px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  padding: 16px;
+}
+
+#modal-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #222;
+}
+
+#modal-message {
+  font-size: 13px;
+  margin-bottom: 18px;
+  white-space: pre-wrap;
+  color: #222;
+}
+
+#modal-message a {
+  color: #0645ad;
+}
+
+#modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+#modal-buttons button {
+  min-width: 76px;
+  padding: 6px 12px;
+  font-size: 13px;
+  border: 1px solid #888;
+  border-radius: 3px;
+  background: #e8e8e8;
+  cursor: pointer;
+}
+
+#modal-buttons button:hover {
+  background: #dcdcdc;
+}
+
+#modal-buttons button:focus {
+  outline: 2px solid #0078d4;
+}
