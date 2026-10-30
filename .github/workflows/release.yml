@@ -1,0 +1,106 @@
+# Copyright 2026 Mark West
+# SPDX-License-Identifier: Apache-2.0
+
+# Builds Hawk for Windows from a version tag, on demand.
+# Run it from the Actions tab: "Release build" > "Run workflow", enter a tag.
+# Produces two unzipped artifacts:
+#   hawk-<tag>-Windows-x64.exe        (standalone executable)
+#   hawk-<tag>-Windows-x64-Setup.exe  (NSIS installer)
+
+name: Release build
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Version tag to build, e.g. v1.0.18"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    env:
+      # Read through an env var, never pasted into scripts, so the input
+      # can't inject shell code.
+      TAG: ${{ inputs.tag }}
+
+    steps:
+      - name: Check tag format
+        shell: pwsh
+        run: |
+          if ($env:TAG -notmatch '^v\d+\.\d+\.\d+$') {
+            throw "Tag must look like v1.2.3, got '$env:TAG'"
+          }
+
+      - name: Check out the tag
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+
+      - name: Check the tag matches the app version
+        shell: pwsh
+        run: |
+          $version = (Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
+          if ("v$version" -ne $env:TAG) {
+            throw "Tag $env:TAG doesn't match version $version in tauri.conf.json"
+          }
+
+      # Embedded source paths show as ~ instead of the runner's home folder.
+      # Set before the cache step, which keys on RUSTFLAGS.
+      - name: Remap local paths
+        shell: pwsh
+        run: Add-Content $env:GITHUB_ENV "RUSTFLAGS=--remap-path-prefix=$env:USERPROFILE=~"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Run tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked
+
+      - name: Build app and installer
+        run: npx --yes @tauri-apps/cli@2 build
+
+      - name: Rename outputs
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item src-tauri/target/release/hawk.exe "dist/hawk-$env:TAG-Windows-x64.exe"
+          $setup = @(Get-ChildItem src-tauri/target/release/bundle/nsis/Hawk_${version}_x64-setup.exe)
+          if ($setup.Count -ne 1) { throw "Expected one installer, found $($setup.Count)" }
+          Copy-Item $setup[0].FullName "dist/hawk-$env:TAG-Windows-x64-Setup.exe"
+
+          # SHA-256 checksums, for the release notes.
+          "### SHA-256" >> $env:GITHUB_STEP_SUMMARY
+          '```' >> $env:GITHUB_STEP_SUMMARY
+          Get-ChildItem dist/*.exe | Get-FileHash -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } |
+            Tee-Object -Append -FilePath $env:GITHUB_STEP_SUMMARY
+          '```' >> $env:GITHUB_STEP_SUMMARY
+
+      # One artifact per file, uploaded unzipped (archive: false allows only a
+      # single file, and the artifact takes the file's name).
+      - name: Upload executable
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/hawk-${{ inputs.tag }}-Windows-x64.exe
+          archive: false
+          if-no-files-found: error
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/hawk-${{ inputs.tag }}-Windows-x64-Setup.exe
+          archive: false
+          if-no-files-found: error
