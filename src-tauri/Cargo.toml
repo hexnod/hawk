@@ -1,6 +1,6 @@
 [package]
 name = "hawk"
-version = "1.0.18"
+version = "1.0.19"
 description = "Hawk - a simple notepad-style text editor"
 authors = ["Mark West"]
 license = "Apache-2.0"

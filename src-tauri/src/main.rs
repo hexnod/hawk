@@ -823,6 +823,10 @@ fn resolve_link_path(doc_path: Option<&str>, href: &str) -> Result<PathBuf, Stri
     if target.is_empty() {
         return Err("Link has no file path.".to_string());
     }
+    // Windows separators before parsing, so "/x" and "//server/share" are
+    // read as a rooted path and a UNC path.
+    #[cfg(target_os = "windows")]
+    let target = target.replace('/', "\\");
     let target = Path::new(&target);
     let resolved = if target.is_absolute() {
         target.to_path_buf()
@@ -832,8 +836,6 @@ fn resolve_link_path(doc_path: Option<&str>, href: &str) -> Result<PathBuf, Stri
         };
         dir.join(target) // a rooted "/x" keeps the document's drive on Windows
     };
-    #[cfg(target_os = "windows")]
-    let resolved = PathBuf::from(resolved.to_string_lossy().replace('/', "\\"));
     Ok(resolved)
 }
 
@@ -1465,6 +1467,32 @@ mod tests {
     use super::*;
 
     #[test]
+    fn link_paths_errors() {
+        assert!(resolve_link_path(Some("/notes/readme.md"), "#only").is_err());
+        assert!(resolve_link_path(Some("/notes/readme.md"), "?q=1").is_err());
+        assert!(resolve_link_path(None, "x.md").is_err());
+    }
+
+    #[test]
+    #[cfg(target_os = "windows")]
+    fn link_paths() {
+        let doc = Some(r"C:\notes\readme.md");
+        let r = |h: &str| resolve_link_path(doc, h).map(|p| p.to_string_lossy().into_owned());
+        assert_eq!(r("docs/guide.md#intro").unwrap(), r"C:\notes\docs\guide.md");
+        assert_eq!(r("my%20file.md?x=1").unwrap(), r"C:\notes\my file.md");
+        assert_eq!(r("caf%C3%A9.md").unwrap(), r"C:\notes\café.md");
+        assert_eq!(r("100%.md").unwrap(), r"C:\notes\100%.md");
+        assert_eq!(r("../other.md").unwrap(), r"C:\notes\..\other.md");
+        assert_eq!(r("/abs/x.md").unwrap(), r"C:\abs\x.md"); // rooted: keeps the drive
+        assert_eq!(r("D:/dir/x.md").unwrap(), r"D:\dir\x.md");
+        assert_eq!(r("file:///C:/dir/x.md").unwrap(), r"C:\dir\x.md");
+        assert_eq!(r("FILE://localhost/C:/x.md").unwrap(), r"C:\x.md");
+        assert_eq!(r("file://server/share/x.md").unwrap(), r"\\server\share\x.md");
+        assert_eq!(r(r"\\server\share\x.md").unwrap(), r"\\server\share\x.md");
+    }
+
+    #[test]
+    #[cfg(not(target_os = "windows"))]
     fn link_paths() {
         let doc = Some("/notes/readme.md");
         let r = |h: &str| resolve_link_path(doc, h).map(|p| p.to_string_lossy().into_owned());
@@ -1479,8 +1507,6 @@ mod tests {
         assert_eq!(r("FILE://localhost/abs/x.md").unwrap(), "/abs/x.md");
         assert_eq!(r("file:///C:/dir/x.md").unwrap(), "/notes/C:/dir/x.md"); // drive paths are only absolute on Windows
         assert_eq!(r("file://server/share/x.md").unwrap(), "//server/share/x.md");
-        assert!(r("#only").is_err());
-        assert!(resolve_link_path(None, "x.md").is_err());
     }
 
     #[test]
