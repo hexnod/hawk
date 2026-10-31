@@ -77,6 +77,7 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
           Copy-Item src-tauri/target/release/hawk.exe "dist/hawk-$env:TAG-Windows-x64.exe"
+          $version = $env:TAG.TrimStart('v')
           $setup = @(Get-ChildItem src-tauri/target/release/bundle/nsis/Hawk_${version}_x64-setup.exe)
           if ($setup.Count -ne 1) { throw "Expected one installer, found $($setup.Count)" }
           Copy-Item $setup[0].FullName "dist/hawk-$env:TAG-Windows-x64-Setup.exe"
